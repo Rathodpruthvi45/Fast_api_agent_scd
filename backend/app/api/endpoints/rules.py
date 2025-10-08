@@ -47,7 +47,8 @@ class RuleExtractor:
         try:
             response = self.llm.invoke([HumanMessage(content=prompt)])
             rule = self.parser.parse(response.content)
-            print(rule)
+            result= self.rule_extractor_from_llm_format(rule.model_dump())
+            return result
 
         except Exception as e:
             print(f"LLM prediction error: {e}")
@@ -61,5 +62,21 @@ class RuleExtractor:
 
         return text.strip()
 
-
+    def rule_extractor_from_llm_format(self,response):
+        full_text=[]
+        print("this is the text rule extractor ")
+        for rule in response:
+            print(rule)
+            for check in rule["registry_checks"]:
+                full_text.append(
+                    {
+                        'name': rule['name'],
+                        'description': rule['description'],
+                        'check_type':rule['check_type'],
+                        'registry_key': rule['registry_key'],
+                        'value_name':check['value_name'],
+                        'expected_value':check['expected_value']
+                    }
+                )
+        return full_text
 rules_extractor = RuleExtractor()

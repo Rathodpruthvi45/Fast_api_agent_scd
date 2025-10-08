@@ -1,5 +1,5 @@
 # Pydantic models for compliance data
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,RootModel
 from typing import List, Optional, Union
 from dataclasses import dataclass, field
 
@@ -57,5 +57,5 @@ class ComplianceRuleForLLM(BaseModel):
     )
 
 
-class ComplianceRuleList(BaseModel):
-    __root__: List[ComplianceRuleForLLM]
+class ComplianceRuleList(RootModel[List[ComplianceRuleForLLM]]):
+    pass

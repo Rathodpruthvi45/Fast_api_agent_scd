@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.api.endpoints import compliance
 from app.api.endpoints import pdf_processor_api
 
 app = FastAPI()
@@ -14,7 +14,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(pdf_processor_api.router)
-
+app.include_router(compliance.router)
 
 @app.get("/")
 def read_root():
