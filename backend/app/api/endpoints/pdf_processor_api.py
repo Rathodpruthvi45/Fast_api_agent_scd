@@ -13,5 +13,5 @@ async def pdf_upload(file: UploadFile = File(...)):
     file_like = BytesIO(contents)
     text = pdfloader.extract_text_from_pdf(file_like)
     rule_extractor = rules_extractor.rule_extractor(text)
-    ComplianceChecker.check_all_rules(rule_extractor)
-    return {"rules": rule_extractor}
+    response=ComplianceChecker.check_all_rules(rule_extractor)
+    return {"rules":response}

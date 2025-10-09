@@ -3,6 +3,7 @@
 import subprocess
 import winreg
 from typing import Tuple
+import os
 class complince_check:
     def __init__(self):
         pass
@@ -38,7 +39,7 @@ class complince_check:
             
         return None
     
-    def normalize_registry_path(registry_path: str) -> Tuple[int, str]:
+    def normalize_registry_path(self,registry_path: str):
         """Normalize registry path and return (root_key, sub_key)."""
         registry_path = registry_path.replace("/", "\\")
 
@@ -57,19 +58,31 @@ class complince_check:
         else:
             root_key = winreg.HKEY_LOCAL_MACHINE
             sub_key = registry_path
-
+        
         return root_key, sub_key
         
     def check_registry_value(self,registry_key:str,value_name:str):
         try:
-            print("the registry key is ",registry_key)
-            root_key,sub_key=self.normalize_registry_path(registry_key)
+            
+            root_key,sub_key=self.normalize_registry_path(registry_key) 
             with winreg.OpenKey(root_key,sub_key,0,winreg.KEY_READ) as key:
                 value,regtype=winreg.QueryValueEx(key,value_name)
-                print("the value is ",value)
-                return True,value
+                return True,str(value)
         except Exception as e:
-            pass 
+            print(e)
+    
+    def check_path_present(self,registry_key:str):
+        root_key,sub_key=self.normalize_registry_path(registry_key)
+        print(root_key,sub_key)
+        results_path1=winreg.HKEY_CURRENT_USER+sub_key
+        try:
+            if os.path.exists(results_path1):
+                return True
+            return False
+        except Exception as e:
+            print(e)
+            return False
+
 
     def single_rule_check(self,rule):
         result={
@@ -82,11 +95,22 @@ class complince_check:
                 }
         try:
             if rule['check_type']=='registry':
-                if rule['registry_key']:
+                if rule['registry_key'] and self.check_path_present(rule['registry_key']):
+                    pass
+                elif rule['registry_key']:
                     complinet=True
                     sucess,value=self.check_registry_value(rule['registry_key'],rule['value_name'])
+                    if sucess:
+                        if (str(value).strip()!=str(rule['expected_value']).strip()):
+                            complinet=False
+                        
+                        result['compliant']=complinet
+                        result['current_value']=value
+                
+            return result
         except Exception as e:
-            pass
+            print(e)
+            return result
         
     def check_all_rules(self,rules):
         try:
@@ -94,9 +118,9 @@ class complince_check:
             for rule in rules:
                 res=self.single_rule_check(rule)
                 results.append(res)
-
-
+        
+            return results
         except Exception as e:
-            pass 
+            print(e)
 
 ComplianceChecker=complince_check()

@@ -10,7 +10,8 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import init_chat_model
 from langchain.schema import HumanMessage
-
+from ...core.compliance_checker import ComplianceChecker
+import winreg
 
 class RuleExtractor:
 
@@ -35,6 +36,9 @@ class RuleExtractor:
 
                 Scan the document text for any **registry paths** (HKLM, HKCU, HKU, HKEY_LOCAL_MACHINE, etc.)
                 and extract the **registry key + value names + expected values**.
+
+                Check the given SID in the data and compare it with the current user’s SID.
+                If they do not match, replace the given SID with the current system’s user SID :{ComplianceChecker.get_current_user_sid()}
 
                 If no registry is found, return an empty list [].
 
@@ -64,9 +68,9 @@ class RuleExtractor:
 
     def rule_extractor_from_llm_format(self,response):
         full_text=[]
-        print("this is the text rule extractor ")
+        
         for rule in response:
-            print(rule)
+            
             for check in rule["registry_checks"]:
                 full_text.append(
                     {
