@@ -6,7 +6,7 @@ import os
 
 class complince_check:
     def __init__(self):
-        pass
+        self.results = []
 
     def get_current_user_sid(self):
         try:
@@ -72,27 +72,21 @@ class complince_check:
 
         return root_key, sub_key
 
-    def check_registry_value(self, registry_key: str, value_name: str):
+    def check_registry_value(self, key_path: str, value_name: str) -> tuple:
+        """Check Windows registry value."""
         try:
+            root_key, sub_key = self.normalize_registry_path(key_path)
+            print(f"Checking registry: {key_path} -> {value_name}")
 
-            root_key, sub_key = self.normalize_registry_path(registry_key)
             with winreg.OpenKey(root_key, sub_key, 0, winreg.KEY_READ) as key:
-                value, regtype = winreg.QueryValueEx(key, value_name)
-
-                while True:
-                    try:
-                        name, value, regtype = winreg.EnumValue(key, index)
-                        print(name)
-                        print(value)
-                        print(regtype)
-                        print("-----")
-                        index += 1
-                    except OSError:
-                        break
-
+                value, reg_type = winreg.QueryValueEx(key, value_name)
                 return True, str(value)
+        except FileNotFoundError:
+            return False, f"Registry key/value not found: {key_path}\\{value_name}"
+        except PermissionError:
+            return False, f"Access denied to registry: {key_path}"
         except Exception as e:
-            print(e)
+            return False, f"Registry error: {str(e)}"
 
     def check_path_present(self, registry_key: str):
         root_key, sub_key = self.normalize_registry_path(registry_key)
@@ -125,11 +119,13 @@ class complince_check:
                         rule["registry_key"], rule["value_name"]
                     )
                     if sucess:
-                        if str(value).strip() != str(rule["expected_value"]).strip():
+                        if value.strip() != str(rule["expected_value"]).strip():
                             complinet = False
-
-                        result["compliant"] = complinet
-                        result["current_value"] = value
+                    else:
+                        complinet = False
+                        value = value  # error message
+                    result["compliant"] = complinet
+                    result["current_value"] = value
 
             return result
         except Exception as e:
@@ -140,12 +136,12 @@ class complince_check:
 
     def check_all_rules(self, rules):
         try:
-            results = []
+
             for rule in rules:
                 res = self.single_rule_check(rule)
-                results.append(res)
+                self.results.append(res)
 
-            return results
+            return self.results
         except Exception as e:
             print(e)
 
