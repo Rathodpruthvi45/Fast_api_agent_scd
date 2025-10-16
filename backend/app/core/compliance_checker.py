@@ -140,7 +140,7 @@ class complince_check:
             for rule in rules:
                 res = self.single_rule_check(rule)
                 self.results.append(res)
-
+            print( self.results)
             return self.results
         except Exception as e:
             print(e)

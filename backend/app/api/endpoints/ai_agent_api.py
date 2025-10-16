@@ -7,10 +7,10 @@ import os
 
 router = APIRouter(prefix="/ai", tags=["AI Compliance Agent"])
 
-# Get Google API key from environment variable
+
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyAkLEmiJg9IXk-LAoKOojQkYDhxTG2py9U")
 
-# Initialize the agent
+
 agent = ComplianceAgent(api_key=GOOGLE_API_KEY)
 
 class ComplianceQuery(BaseModel):
@@ -37,8 +37,18 @@ async def process_compliance_query(query: ComplianceQuery):
 async def analyze_compliance(rules: ComplianceRuleList):
     """Analyze compliance rules without a specific query"""
     try:
-        # Use empty query to just get compliance analysis
+        
         response = await agent.process_query("Analyze the compliance status.", rules.rules)
         return ComplianceResponse(**response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/ai/ask")
+async def ask_compliance_question(question:str):
+    try:
+        respons= await agent.ask_quation(question)
+        return respons
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
+
+    
