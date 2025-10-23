@@ -36,7 +36,7 @@ class ComplianceAgent:
         self.persist_directory = ".chromadb"
         os.makedirs(self.persist_directory, exist_ok=True)
         
-        # Initialize Chroma vectorstore with settings
+        
         self.vectorstore = Chroma(
             persist_directory=self.persist_directory,
             embedding_function=self.embeddings,
