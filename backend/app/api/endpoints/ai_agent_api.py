@@ -43,12 +43,5 @@ async def analyze_compliance(rules: ComplianceRuleList):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/ai/ask")
-async def ask_compliance_question(question:str):
-    try:
-        respons= await agent.ask_quation(question)
-        return respons
-    except Exception as e:
-        raise HTTPException(status_code=500,detail=str(e))
 
     
